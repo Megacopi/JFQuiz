@@ -1,0 +1,1362 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Unendliches Quiz</title>
+    <style>
+        body {
+    font-family: Arial, sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background-color: #f0f0f0;
+    margin: 0;
+    padding: 20px;
+    }
+
+    .container {
+        width: 100%;
+        max-width: 600px;
+        background-color: #fff;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+
+    .hidden {
+        display: none;
+    }
+
+    #start-screen, #quiz-container, #selection-screen {
+        text-align: center;
+    }
+
+    button {
+        padding: 10px 20px;
+        margin: 10px;
+        cursor: pointer;
+        border: none;
+        background-color: #007bff;
+        color: white;
+        border-radius: 5px;
+    }
+
+    button:hover {
+        background-color: #0056b3;
+    }
+
+    #options-container {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        margin-top: 20px;
+    }
+
+    .option {
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        cursor: pointer;
+        text-align: left;
+    }
+
+    .option.selected {
+        background-color: #e9e9e9;
+    }
+
+    .option.correct {
+        background-color: #d4edda;
+        border-color: #c3e6cb;
+    }
+
+    .option.incorrect {
+        background-color: #f8d7da;
+        border-color: #f5c6cb;
+    }
+
+    #feedback {
+        margin-top: 20px;
+        font-weight: bold;
+    }
+
+    #question-list {
+        list-style-type: none;
+        padding: 0;
+        text-align: left;
+    }
+
+    #question-list li {
+        padding: 10px;
+        border-bottom: 1px solid #eee;
+        cursor: pointer;
+    }
+
+    @media (max-width: 600px) {
+        body {
+            padding: 10px;
+        }
+    }
+    </style>
+</head>
+<body>
+
+    <div id="start-screen">
+        <h1>Unendliches Quiz</h1>
+        <p>Wähle einen Modus aus:</p>
+        <button id="start-endless-mode">Unendlich-Modus</button>
+        <button id="start-selection-mode">Auswahl-Modus</button>
+    </div>
+
+    <div id="quiz-container" class="hidden">
+        <div id="question-text"></div>
+        <div id="options-container"></div>
+        <button id="submit-answer">Antwort abschicken</button>
+        <button id="next-question-btn" class="hidden">Weiter</button>
+        <div id="feedback" class="hidden"></div>
+        <button id="back-to-main-menu-quiz">Zum Hauptmenü</button>
+    </div>
+
+    <div id="selection-screen" class="hidden">
+        <h2>Fragen auswählen</h2>
+        <ul id="question-list"></ul>
+        <button id="back-to-main-menu-selection">Zum Hauptmenü</button>
+    </div>
+
+    <script>window.quizQuestions = [
+    {
+        question: "Welche Aufgaben hat die Feuerwehr?",
+        options: [
+            "Güter transportieren und Bauwerke errichten.",
+            "Den Einzelnen und der Allgemeinheit in Brandgefahren und bei sonstigen Notständen beizustehen, Menschen und Tiere zu retten, zu schützen, Güter zu bergen, Brände zu bekämpfen und technische Hilfe zu leisten.",
+            "Den Verkehr regeln und Strafzettel verteilen.",
+            "Gartenarbeit in öffentlichen Parks übernehmen."
+        ],
+        correctIndex: 1
+    },
+    {
+        question: "Welche Arten von Feuerwehren gibt es in Deutschland?",
+        options: [
+            "Nur Berufsfeuerwehr und Freiwillige Feuerwehr.",
+            "Freiwillige Feuerwehr, Berufsfeuerwehr, Werkfeuerwehr und Pflichtfeuerwehr.",
+            "Freiwillige Feuerwehr, Berufsfeuerwehr, Werkfeuerwehr, Betriebsfeuerwehr und Pflichtfeuerwehr.",
+            "Nur Freiwillige Feuerwehr und Werkfeuerwehr."
+        ],
+        correctIndex: 2
+    },
+    {
+        question: "Wie heißt der Verband, in dem die Feuerwehren zusammengeschlossen sind?",
+        options: [
+            "Deutscher Feuerwehrverband (DFV)",
+            "Landesfeuerwehrverband Niedersachsen (LFV-NDS)",
+            "Verband der deutschen Brandschützer",
+            "Nationale Feuerwehrunion (NFU)"
+        ],
+        correctIndex: 0
+    },
+    {
+        question: "Gibt es auf Landesebene auch einen Verband der Feuerwehren?",
+        options: [
+            "Nein, die Landesverbände wurden abgeschafft.",
+            "Ja, hier gibt es den Landes-Feuerwehrverband.",
+            "Ja, aber nur in wenigen Bundesländern.",
+            "Nein, nur der DFV ist auf Bundesebene zuständig."
+        ],
+        correctIndex: 1
+    },
+    {
+        question: "Was ist die Jugendfeuerwehr?",
+        options: [
+            "Es ist die Abteilung für Freiwillige im Alter von 18 bis 25.",
+            "Eine Gruppe von Feuerwehrleuten in Ausbildung.",
+            "Es ist die Jugendgruppe der Feuerwehr.",
+            "Eine reine Sportgruppe der Feuerwehr."
+        ],
+        correctIndex: 2
+    },
+    {
+        question: "Was ist die 'Deutsche Jugendfeuerwehr'?",
+        options: [
+            "Ein reiner Sportverein für Jugendliche.",
+            "Eine Bildungseinrichtung für Brandschutzerziehung.",
+            "Die Gemeinschaft der Jugend innerhalb des Deutschen Feuerwehrverbandes.",
+            "Eine Organisation für internationale Jugendaustausche."
+        ],
+        correctIndex: 2
+    },
+    {
+        question: "Welches ist die gesetzliche Grundlage für die Tätigkeiten der Feuerwehren?",
+        options: [
+            "Das Gemeindeverfassungsgesetz.",
+            "Das Bundesgesetz für den Katastrophenschutz.",
+            "Das Gesetz über Brandschutz und Hilfeleistung.",
+            "Die Feuerwehrdienstvorschrift 3."
+        ],
+        correctIndex: 2
+    },
+    {
+        question: "Wer erlässt dieses Gesetz in Niedersachsen?",
+        options: [
+            "Die Gemeinde.",
+            "Der Landtag.",
+            "Der Bundesrat.",
+            "Die Berufsfeuerwehr."
+        ],
+        correctIndex: 1
+    },
+    {
+        question: "Wer ist der Träger des Brandschutzes?",
+        options: [
+            "Der Bundeskanzler.",
+            "Die Berufsfeuerwehr.",
+            "Die Landesregierung.",
+            "Die Gemeinde."
+        ],
+        correctIndex: 3
+    },
+    {
+        question: "Wie lange kann der Feuerwehrmann einer Freiwilligen Feuerwehr aktiv angehören und wo ist dieses festgelegt?",
+        options: [
+            "Vom 18. bis zum 60. Lebensjahr, festgelegt im Niedersächsischen Brandschutzgesetz.",
+            "Vom 16. bis 62. Lebensjahr, sofern sein Gesundheitszustand es zulässt. Festgelegt ist dies im Niedersächsischem Brandschutzgesetz.",
+            "Vom 16. bis zum 67. Lebensjahr, festgelegt in der Feuerwehrdienstvorschrift.",
+            "Bis zum 65. Lebensjahr, geregelt im Kommunalgesetz."
+        ],
+        correctIndex: 1
+    },
+    {
+        question: "Wie ist das Eintrittsalter in die Jugendfeuerwehr? Mit welchem Alter kann man in die aktive Wehr übernommen werden? Wo ist dies festgelegt?",
+        options: [
+            "In Niedersachsen kann man mit vollenden des 10. Lebensjahres in die Jugendfeuerwehr eintreten. Mit Vollendung des 16. Lebensjahres kann man in die aktive Wehr übernommen werden. Festgelegt ist dies im Niedersächsischem Brandschutzgesetz.",
+            "Eintrittsalter ist 12 Jahre, Übernahme mit 18 Jahren. Festgelegt im Bundesgesetz.",
+            "Eintrittsalter ist 6 Jahre, Übernahme mit 18 Jahren. Festgelegt im Landesbrandschutzgesetz.",
+            "Eintrittsalter ist 14 Jahre, Übernahme mit 18 Jahren. Festgelegt in der Jugendordnung."
+        ],
+        correctIndex: 0
+    },
+    {
+        question: "Wie heißt der Angehörige einer Jugendfeuerwehr?",
+        options: [
+            "Jungfeuerwehrmann (Jfm), aber man spricht auch vom Mitglied der Jugendfeuerwehr.",
+            "Feuerwehr-Azubi.",
+            "Jugendfeuerwehr-Anwärter.",
+            "Feuerwehrlehrling."
+        ],
+        correctIndex: 0
+    },
+    {
+        question: "Wie nennt man den Betreuer und Ausbilder in der Jugendfeuerwehr?",
+        options: [
+            "Der Wehrführer.",
+            "Der Kreisbrandmeister.",
+            "Jugendfeuerwehrwart (JFW).",
+            "Der Ausbilder."
+        ],
+        correctIndex: 2
+    },
+    {
+        question: "Wer ist der Leiter der Jugendfeuerwehr? Und wie wird er bestimmt?",
+        options: [
+            "Der Ortsbrandmeister. Er wird vom Bürgermeister ernannt.",
+            "Der Jugendwart. Er wird von der Jugendfeuerwehr gewählt und vom Ortsbrandmeister ernannt.",
+            "Der Kreisjugendfeuerwehrwart. Er wird vom Landrat ernannt.",
+            "Der Leiter ist der Jugendfeuerwehrwart, auch Jugendgruppenleiter (JGL) genannt. Er wird von den Mitgliedern der JF vorgeschlagen, auf der Generalversammlung gewählt und vom Ortsbrandmeister bestellt."
+        ],
+        correctIndex: 3
+    },
+    {
+        question: "Auf welcher Grundlage arbeitet die Jugendfeuerwehr?",
+        options: [
+            "Auf der Grundlage des Niedersächsischen Brandschutzgesetzes.",
+            "Auf der Grundlage der Feuerwehrdienstvorschrift.",
+            "Auf der Grundlage der Jugendordnung.",
+            "Auf der Grundlage der Satzung der Gemeinde."
+        ],
+        correctIndex: 2
+    },
+    {
+        question: "Was ist der Jugendausschuss?",
+        options: [
+            "Der Jugendausschuss wird von den Mitgliedern der JF auf die Dauer von einem Jahr gewählt.",
+            "Ein Gremium der Gemeinde.",
+            "Ein vom Ortsbrandmeister ernannter Beirat.",
+            "Ein Treffen aller Jugendfeuerwehren auf Kreisebene."
+        ],
+        correctIndex: 0
+    },
+    {
+        question: "Wer gehört zum Jugendausschuss?",
+        options: [
+            "Der Jugendwart, der Ortsbrandmeister und der Schriftführer.",
+            "Jugendsprecher eventuell Stellvertreter und Schriftführer eventuell Stellvertreter.",
+            "Alle Mitglieder der Jugendfeuerwehr.",
+            "Nur der Jugendsprecher und sein Stellvertreter."
+        ],
+        correctIndex: 1
+    },
+    {
+        question: "Wie nennt man den Betreuer der Jugendfeuerwehr auf Kreisebene?",
+        options: [
+            "Kreisbrandmeister (KBM)",
+            "Kreis-Jugendfeuerwehrwart (KJFW)",
+            "Bezirks-Jugendfeuerwehrwart (BJFW)",
+            "Landes-Jugendfeuerwehrwart (LJFW)"
+        ],
+        correctIndex: 1
+    },
+    {
+        question: "Wie nennt man den Betreuer der Jugendfeuerwehr auf Landesebene?",
+        options: [
+            "Landesbrandmeister (LBM)",
+            "Bezirks-Jugendfeuerwehrwart (BJFW)",
+            "Landes-Jugendfeuerwehrwart (LJFW)",
+            "Landesfeuerwehrverbandsvorsitzender"
+        ],
+        correctIndex: 2
+    },
+    {
+        question: "Wie nennt man den Betreuer der Jugendfeuerwehr auf Bundesebene?",
+        options: [
+            "Bundesjugendleiter (BJL)",
+            "Bundesfeuerwehrchef (BFC)",
+            "Bundes-Jugendfeuerwehrwart (BJFW)",
+            "Bundespräsident (BP)"
+        ],
+        correctIndex: 0
+    },
+    {
+        question: "Was bedeuten die Abkürzungen JF, Jfm, JFW, KJFW, LJFW, BJL, FF, BF, WF, DFV, DJF?",
+        options: [
+            "Jugendfeuerwehr, Jungfeuerwehrmitglied, Jugendfeuerwehrwart, Kreis-Jugendfeuerwehrwart, Landes-Jugendfeuerwehrwart, Bundesjugendleiter, Freiwillige Feuerwehr, Berufsfeuerwehr, Werkfeuerwehr, Deutscher Feuerwehrverband, Deutsche Jugendfeuerwehr.",
+            "Jugendfeuerwehr, Jungfeuerwehrmann, Jugendfeuerwehrverein, Kreis-JFW, Landes-JFW, Bundes-JFW, Funkfeuerwehr, Brandschutzfeuerwehr, Wassertransportfeuerwehr, Deutscher Feuerwehrausbilder Verband, Deutsche Jugendforum.",
+            "Jugendfeuerwehr, Jugendfeuerwehrmitglied, Jugendfeuerwehrwart, Kreisfreiw.-JF-Wart, Landes-JF-Wart, Bund-JF-Leiter, Freiwillige Feuerwehr, Brandschutzfeuerwehr, Werkfeuerwehr, Deutscher Facheinheiten-Verband, Deutsche Jugendfeuerwehr.",
+            "Jugendfeuerwehr, Jungfeuerwehrmitglied, Jugendfeuerwehrwart, Kreis-JF-Wart, Landes-JF-Wart, Bundes-JF-Leiter, Freiw. Feuer, Berufs-Feuer, Wasser-Feuer, Deutscher Feuerwehr-Verband, Deutsche Jugendfeuerwehr."
+        ],
+        correctIndex: 0
+    },
+    {
+        question: "Wo befindet sich das Sekretariat der Deutschen Jugendfeuerwehr?",
+        options: [
+            "In Berlin, am Brandenburger Tor.",
+            "In Hamburg, im Feuerwehrmuseum.",
+            "In Bonn - Bad Godesberg.",
+            "In Hannover, in der Landesgeschäftsstelle."
+        ],
+        correctIndex: 2
+    },
+    {
+        question: "Wo wird das Ärmelabzeichen der DJF getragen?",
+        options: [
+            "Auf der Dienstkleidung der JF, auf dem linken Ärmel des Übungsanzuges. Es ist genau seitlich 4 cm vom oberen Rand der Schulternaht entfernt angenäht.",
+            "Auf der rechten Brusttasche des Übungsanzuges.",
+            "Am Kragen des Diensthemdes.",
+            "Auf dem Rücken des Einsatzanzuges."
+        ],
+        correctIndex: 0
+    },
+    {
+        question: "Wer kann die Anstecknadel (Traditionsabzeichen) der JF tragen?",
+        options: [
+            "Jeder Feuerwehrmann, der mindestens 10 Jahre aktiv ist.",
+            "Aus der JF übernommene Mitglieder, wenn die Berechtigung vom Ortsbrandmeister ausgesprochen wurde. Eine der Voraussetzungen für diese Berechtigung ist die erworbene Leistungsspange der DJF.",
+            "Nur Mitglieder der Jugendfeuerwehr.",
+            "Jeder, der eine Spende für die Jugendfeuerwehr leistet."
+        ],
+        correctIndex: 1
+    },
+    {
+        question: "Wer verleiht die Ehrennadel der Deutschen Jugendfeuerwehr?",
+        options: [
+            "Der Kreisbrandmeister.",
+            "Der jeweilige Bürgermeister.",
+            "Diese wird vom Präsidenten des Deutschen Feuerwehrverbandes verliehen.",
+            "Der Ortsbrandmeister."
+        ],
+        correctIndex: 2
+    },
+    {
+        question: "Wer kann die Leistungsspange der Deutschen Jugendfeuerwehr erwerben?",
+        options: [
+            "Alle Mitglieder der Jugendfeuerwehr, unabhängig vom Alter.",
+            "Mitglieder der JF im Alter von 15 bis 18 Jahren, wenn sie mindestens ein Jahr der JF angehören.",
+            "Nur erwachsene Feuerwehrleute.",
+            "Jeder, der die schriftliche Prüfung besteht."
+        ],
+        correctIndex: 1
+    },
+    {
+        question: "Welche Leistungen bzw. Voraussetzungen werden für die Leistungsspange gefordert?",
+        options: [
+            "In einer Gemeinschaftsleistung der Gruppe müssen fünf verschiedene Leistungen erbracht werden: Schnelligkeitsübung, Kugelstoßen, Staffellauf, Löschangriff und Beantwortung von Fragen (mündlich).",
+            "Einzelsportliche Leistungen wie 100-Meter-Lauf und Weitsprung.",
+            "Ein 10-seitiger Aufsatz über die Geschichte der Feuerwehr.",
+            "Das Bestehen einer schriftlichen Prüfung."
+        ],
+        correctIndex: 0
+    },
+    {
+        question: "Wie wird die Leistungsspange getragen?",
+        options: [
+            "Am Übungsanzug des Jfm bzw. später am Dienstrock oberhalb der linken Brusttasche.",
+            "Am Gürtel des Dienstanzuges.",
+            "Nur während Wettkämpfen.",
+            "An der Mütze."
+        ],
+        correctIndex: 0
+    },
+    {
+        question: "Was ist der Mitgliedsausweis der Deutschen Jugendfeuerwehr?",
+        options: [
+            "Ein reiner Lichtbildausweis zur Identifizierung.",
+            "Es ist der einheitliche Mitgliedsausweis für alle Mitglieder der Deutschen Jugendfeuerwehr. Er weist die Zugehörigkeit zur Jugendfeuerwehr aus und ist eine wichtige Urkundensammlung für den späteren Feuerwehrdienst.",
+            "Ein Ausweis, der nur für den Eintritt in Feuerwehrhäuser dient.",
+            "Eine Jahreskarte für den Eintritt in Feuerwehrmuseen."
+        ],
+        correctIndex: 1
+    },
+    {
+        question: "Welche Daten stehen im Mitgliedsausweis?",
+        options: [
+            "Name und Anschrift des Mitglieds.",
+            "U.a. Ausweis-Nr.; Personalien des Mitgliedes; Eintrittsdatum in die JF und in welche; Verleihungsurkunde für die Leistungsspange; Vermerke über besondere Veranstaltungen und Lehrgänge sowie Übernahmebescheinigung in die Freiwillige Feuerwehr.",
+            "Nur die Ausweisnummer und das Geburtsdatum.",
+            "Die Schulnoten und Hobbys des Mitglieds."
+        ],
+        correctIndex: 1
+    },
+    {
+        question: "Werden die Dienstjahre des Jfm für die Gesamtdienstzeit in der Freiwilligen Feuerwehr mitgerechnet?",
+        options: [
+            "Ja.",
+            "Nein, die Dienstzeit beginnt erst mit der Übernahme in die aktive Wehr.",
+            "Nur, wenn man die Leistungsspange erworben hat.",
+            "Nur die Hälfte der Dienstjahre werden angerechnet."
+        ],
+        correctIndex: 0
+    },
+    {
+        question: "Ist die Gemeinde bzw. Freiwillige Feuerwehr zur Gründung einer JF verpflichtet?",
+        options: [
+            "Ja, jede Gemeinde muss eine Jugendfeuerwehr haben.",
+            "Nein, sie sind nicht verpflichtet, aber es wird empfohlen.",
+            "Bei den Freiwilligen Feuerwehren sollte nach Möglichkeit eine Jugendfeuerwehr gebildet werden.",
+            "Ja, aber nur in Gemeinden mit mehr als 10.000 Einwohnern."
+        ],
+        correctIndex: 2
+    },
+    {
+        question: "Welches ist die Mindeststärke für eine Jugendfeuerwehr?",
+        options: [
+            "Mindestens 10 Mitglieder.",
+            "Laut Jugendordnung sollte eine Jugendfeuerwehr mindestens eine Gruppenstärke haben.",
+            "Mindestens 6 Mitglieder.",
+            "Es gibt keine Mindeststärke."
+        ],
+        correctIndex: 1
+    },
+    {
+        question: "Wird in der Jugendfeuerwehr nur Feuerwehrdienst gehalten?",
+        options: [
+            "Ja, der Dienst besteht ausschließlich aus feuerwehrtechnischer Ausbildung.",
+            "Nein! Der Jugendfeuerwehrdienst setzt sich zusammen aus ca. 50 Prozent feuerwehrtechnischer Ausbildung und ca. 50 Prozent freier Jugendarbeit.",
+            "Ja, die Jugendfeuerwehr ist eine reine Nachwuchsgruppe für die Feuerwehr.",
+            "Nein, aber der Anteil der freien Jugendarbeit beträgt maximal 25%."
+        ],
+        correctIndex: 1
+    },
+    {
+        question: "Wo sind die Aufgaben zur Aufteilung von Feuerwehrdienst und freier Jugendarbeit festgelegt?",
+        options: [
+            "In der Landesverordnung.",
+            "Im Bundesgesetz über Jugendarbeit.",
+            "Im Brandschutzgesetz.",
+            "In der Jugendordnung der Deutschen Jugendfeuerwehr."
+        ],
+        correctIndex: 3
+    },
+    {
+        question: "Was bedeuten die Abkürzungen FM/FF, OFM/OFF, HFM/HFF, BM, GBM, KBM, BBM, Jfm, JFW, GJFW, KJFW, BJFW, LJFW, BJL, BJS?",
+        options: [
+            "Feuerwehrmann/frau, Oberfeuerwehrmann/frau, Hauptfeuerwehrmann/frau, Brandmeister/in, Gemeindebrandmeister/in, Kreisbrandmeister/in, Bezirksbrandmeister/in, Jugendfeuerwehrmitglied, Jugendfeuerwehrwart/in, Gemeinde-Jugendfeuerwehrwart/in, Kreis-Jugendfeuerwehrwart/in, Bezirks-Jugendfeuerwehrwart/in, Landes-Jugendfeuerwehrwart/in, Bundesjugendleiter/in, Bundesjugendsekretär/in.",
+            "Feuerwehrmann/frau, Oberhauptmann/frau, Haupttruppführer/in, Brandschutzmann/frau, Gesamtbrandmeister, Kreisfunkmeister, Brandschutzminister, Jungfeuerwehrmann, Jugendfeuerwehrwart, Gesamtjugendfeuerwehrwart, Kreisjugendfeuerwehrwart, Bezirksjugendfeuerwehrwart, Landesjugendfeuerwehrwart, Bundesjugendleiter, Bundesjugendsekretär.",
+            "Freiwilliges Mitglied, Ober-Führungsmitglied, Haupt-Führungsmitglied, Brandschutzbeauftragter, Gesamtbrandschutzbeauftragter, Kreisbrandschutzbeauftragter, Bezirksbrandschutzbeauftragter, Jungmitglied, Jugendfeuerwehrführer, Gesamtjugendfeuerwehrführer, Kreis-JF-Führer, Bezirks-JF-Führer, Landes-JF-Führer, Bundes-J-Leiter, Bundes-J-Sprecher.",
+            "Feuerwehrmann/frau, Oberfeuerwehrmann/frau, Hauptfeuerwehrmann/frau, Brandmeister/in, Gemeindebrandmeister/in, Kreisbrandmeister/in, Bezirksbrandmeister/in, Jungfeuerwehrmitglied, Jugendfeuerwehrwart/in, Gesamtjugendfeuerwehrwart/in, Kreis-Jugendfeuerwehrwart/in, Bezirks-Jugendfeuerwehrwart/in, Landes-Jugendfeuerwehrwart/in, Bundesjugendleiter/in, Bundesjugendsekretär/in."
+        ],
+        correctIndex: 0
+    },
+    {
+        question: "Was ist ein Löschfahrzeug?",
+        options: [
+            "Ein Fahrzeug zum Transport von Material und Ausrüstung.",
+            "Ein Kraftfahrzeug, das zum Transport von Wasser und Löschmittel dient.",
+            "Löschfahrzeuge sind für die Brandbekämpfung besonders gestaltete und zur Aufnahme einer Besatzung und einer feuerwehrtechnischen Beladung eingerichtete Kraftfahrzeuge.",
+            "Jeder LKW, der eine Pumpe an Bord hat."
+        ],
+        correctIndex: 2
+    },
+    {
+        question: "Was ist ein Löschgruppenfahrzeug?",
+        options: [
+            "Ein Fahrzeug zur Aufnahme einer Löschgruppe (1 + 8), mit einer vom Fahrzeugmotor angetriebenen Pumpe und mit einer feuerwehrtechnischen Beladung.",
+            "Ein Löschfahrzeug, das nur eine Besatzung von 1+2 transportieren kann.",
+            "Ein Fahrzeug, das ausschließlich für den Wassertransport genutzt wird.",
+            "Ein kleiner PKW für den Transport von Feuerwehrführern."
+        ],
+        correctIndex: 0
+    },
+    {
+        question: "Was ist eine Löschgruppe?",
+        options: [
+            "Ein Zusammenschluss von 3 Trupps.",
+            "Die kleinste taktische Einheit der Feuerwehr zur selbständigen Bekämpfung eines Brandes.",
+            "Ein Verband von mindestens 20 Feuerwehrleuten.",
+            "Eine Gruppe von Feuerwehrleuten, die nur administrative Aufgaben übernehmen."
+        ],
+        correctIndex: 1
+    },
+    {
+        question: "Wie stark ist eine Löschgruppe und aus welchen Aktiven besteht diese?",
+        options: [
+            "Stärke ist 1 + 8. Die Gliederung ist: Gruppenführer/in, Maschinist/in, Melder/in, Angriffstruppführer/mann, Wassertruppführer/mann, Schlauchtruppführer/mann.",
+            "Stärke ist 1 + 5, bestehend aus einem Staffelführer und 5 weiteren Feuerwehrleuten.",
+            "Stärke ist 1 + 2, bestehend aus einem Truppführer und zwei Truppmännern.",
+            "Stärke ist 1 + 6, bestehend aus einem Führer und 6 weiteren."
+        ],
+        correctIndex: 0
+    },
+    {
+        question: "Was ist ein Trupp und eine Staffel und welche Mannschaftsstärke haben diese?",
+        options: [
+            "Löschtrupp hat eine Mannschaftsstärke 1 + 2. Löschstaffel hat eine Mannschaftsstärke 1 + 5.",
+            "Löschtrupp hat 1 + 4, Löschstaffel hat 1 + 6.",
+            "Löschtrupp hat 1 + 8, Löschstaffel hat 1 + 2.",
+            "Löschtrupp hat 1 + 5, Löschstaffel hat 1 + 8."
+        ],
+        correctIndex: 0
+    },
+    {
+        question: "Welche Feuerwehrfahrzeuge kennen wir?",
+        options: [
+            "1. Löschfahrzeuge, 2. Drehleitern, 3. Schlauchwagen, 4. Rüstwagen, 5. Sanitätsfahrzeuge, 6. Sonstige Feuerwehrfahrzeuge.",
+            "Nur Löschfahrzeuge und Rüstwagen.",
+            "Nur Drehleitern und Tanklöschfahrzeuge.",
+            "1. Löschfahrzeuge, 2. Mannschaftstransportwagen, 3. Gerätewagen."
+        ],
+        correctIndex: 0
+    },
+    {
+        question: "Welche genormten Löschfahrzeuge kennen wir?",
+        options: [
+            "1. Löschgruppenfahrzeug, 2. Tragkraftspritzenfahrzeug, 3. Tanklöschfahrzeug, 4. Trockenlöschfahrzeug, 5. Trocken-Tanklöschfahrzeug, 6. Sonstige Löschfahrzeuge.",
+            "1. Rüstwagen, 2. Drehleiter, 3. Tanklöschfahrzeug.",
+            "1. Kommandowagen, 2. Gerätewagen, 3. Manschaftstransportwagen.",
+            "1. Löschfahrzeug, 2. Rettungswagen, 3. Gefahrgutwagen."
+        ],
+        correctIndex: 0
+    },
+    {
+        question: "Wodurch sind Feuerwehrfahrzeuge bei Einsatzfahrten und Fahrten zu Alarmübungen gekennzeichnet?",
+        options: [
+            "Durch gelbes Blinklicht.",
+            "Durch rotes Dauerlicht.",
+            "Durch blaues Blinklicht (Blaulicht) und Einsatzhorn (Mehrklanghorn).",
+            "Durch grünes Blinklicht."
+        ],
+        correctIndex: 2
+    },
+    {
+        question: "Nenne die persönliche Ausrüstung (Übungsanzug) des Jfm",
+        options: [
+            "Kombinationsanzug, Schutzhelm, festes Schuhwerk und Schutzhandschuhe.",
+            "Einsatzanzug und Atemschutzgerät.",
+            "Regenjacke und Turnschuhe.",
+            "Weste, Jeans und Sportschuhe."
+        ],
+        correctIndex: 0
+    },
+    {
+        question: "Welche wasserführenden Armaturen gibt es?",
+        options: [
+            "Standrohr, Saugkorb, Sammelstück, Verteiler, Strahlrohr, Kupplung, Übergangsstück.",
+            "Nur Strahlrohr und Kupplungen.",
+            "Schläuche, Verteiler und Hydranten.",
+            "Standrohr, Saugkorb und Schläuche."
+        ],
+        correctIndex: 0
+    },
+    {
+        question: "Wozu dient das Standrohr?",
+        options: [
+            "Zur Entnahme von Wasser aus Unterflurhydranten.",
+            "Zum Ansaugen von Wasser aus offenem Gewässer.",
+            "Zur Entnahme von Wasser aus Überflurhydranten.",
+            "Zur Wasserabgabe bei einem Löschangriff."
+        ],
+        correctIndex: 0
+    },
+    {
+        question: "Wieviel Arten von Standrohren (Größen) gibt es?",
+        options: [
+            "Eine Art.",
+            "Zwei Arten: Standrohr mit 2 B-Abgängen und Standrohr mit 2 C-Abgängen.",
+            "Drei Arten, für A, B und C Schläuche.",
+            "Fünf Arten, für alle gängigen Schlauchgrößen."
+        ],
+        correctIndex: 1
+    },
+    {
+        question: "Wozu dient der Saugkorb?",
+        options: [
+            "Zum Verteilen des Löschwassers.",
+            "Zum Zurückhalten größerer Schmutzteile von der Pumpe, zum Festhalten der Wassersäule bei vorübergehendem Stillstand der Pumpe und zur Sicherstellung des Auffüllens von Pumpen und Saugleitung bei Versagen der Entlüftungseinrichtung.",
+            "Zur Herstellung eines Unterdrucks zum Ansaugen von Wasser.",
+            "Zur Verbindung von Schläuchen."
+        ],
+        correctIndex: 1
+    },
+    {
+        question: "Wozu dient das Sammelstück?",
+        options: [
+            "Das Sammelstück hat die Aufgabe, zwei ankommende Leitungen (Schläuche) in die nächst größere überzuleiten.",
+            "Es sammelt Schmutz und kleine Steine aus dem Löschwasser.",
+            "Es sammelt die Mannschaft für den Einsatz.",
+            "Es dient zum Sammeln von Ausrüstungsteilen."
+        ],
+        correctIndex: 0
+    },
+    {
+        question: "Wozu dient der Verteiler?",
+        options: [
+            "Ein Verteiler hat die Aufgabe, die ankommende Leitung in max. drei abgehende Leitungen aufzuteilen.",
+            "Er verteilt die Löschmittel auf verschiedene Fahrzeuge.",
+            "Er dient zur Verteilung der Mannschaft.",
+            "Er sorgt für die richtige Wurfweite des Wasserstrahls."
+        ],
+        correctIndex: 0
+    },
+    {
+        question: "Welchen Zweck hat das Strahlrohr?",
+        options: [
+            "Das Strahlrohr soll dem Löschwasser die erforderliche Form, Richtung und die erforderliche Ausflussgeschwindigkeit geben.",
+            "Es dient zur Absperrung der Wasserzufuhr.",
+            "Es ist ein Werkzeug zum Hochziehen von Material.",
+            "Es dient zum Auffüllen des Tanklöschfahrzeugs."
+        ],
+        correctIndex: 0
+    },
+    {
+        question: "Wozu dienen Kupplungen?",
+        options: [
+            "Kupplungen verbinden Schläuche untereinander oder Schläuche mit Armaturen.",
+            "Sie dienen zur Wasserabgabe.",
+            "Sie werden zum Tragen von Geräten verwendet.",
+            "Sie dienen zum Anschließen des Standrohrs."
+        ],
+        correctIndex: 0
+    },
+    {
+        question: "Wozu dient das Übergangsstück?",
+        options: [
+            "Zur Verbindung von Kupplungen verschiedener Größen.",
+            "Zur Verbindung von Strahlrohren.",
+            "Zum Absperren von Leitungen.",
+            "Zum Verteilen des Wassers auf mehrere Schläuche."
+        ],
+        correctIndex: 0
+    },
+    {
+        question: "Womit wird das Wasser für Feuerlöschzwecke aus dem Rohrleitungssystem (Wasserleitung) entnommen?",
+        options: [
+            "Mit einem Standrohr.",
+            "Mit Hydranten.",
+            "Mit einem Saugkorb.",
+            "Mit einem Schlauchwagen."
+        ],
+        correctIndex: 1
+    },
+    {
+        question: "Welche Arten von Hydranten gibt es?",
+        options: [
+            "Es gibt Unterflurhydranten und Überflurhydranten.",
+            "Es gibt: Unterflurhydranten, Überflurhydranten und Überflurhydranten mit Fallmantel.",
+            "Es gibt nur Überflurhydranten.",
+            "Es gibt nur Unterflurhydranten."
+        ],
+        correctIndex: 1
+    },
+    {
+        question: "Womit öffnet man einen Unterflur- und einen Überflurhydranten?",
+        options: [
+            "Mit einem Universalschlüssel.",
+            "Mit einem Unterflur-Hydranten-Schlüssel und einem Überflur-Hydranten-Schlüssel.",
+            "Mit einem Drehmomentschlüssel.",
+            "Mit einer Zange."
+        ],
+        correctIndex: 1
+    },
+    {
+        question: "Welche Arten von Feuerwehrschläuchen gibt es?",
+        options: [
+            "Druckschläuche und Saugschläuche.",
+            "A-Schläuche und B-Schläuche.",
+            "H-Schläuche und D-Schläuche.",
+            "Nur Druckschläuche."
+        ],
+        correctIndex: 0
+    },
+    {
+        question: "Welche Arten von Druckschläuchen gibt es?",
+        options: [
+            "A-, B-, C-, D- und S-Druckschlauch (Hochdruckschlauch).",
+            "Nur B- und C-Schlauch.",
+            "Saug- und Druckschläuche.",
+            "A-, B-, C- und D-Schlauch."
+        ],
+        correctIndex: 0
+    },
+    {
+        question: "Wie groß sind diese Druckschläuche (Durchmesser und Länge)?",
+        options: [
+            "Die Größen variieren je nach Typ: A-Schlauch (110 mm), B-Schlauch (75 mm), C-Schlauch (52 mm und 42 mm), D-Schlauch (25 mm) und S-Schlauch (28 mm für Wasser und 32 mm für Pulver). Die Längen variieren ebenfalls.",
+            "Alle Druckschläuche sind 20 Meter lang.",
+            "Alle Druckschläuche haben einen Durchmesser von 50 mm.",
+            "Die Größe hängt von der Farbe ab."
+        ],
+        correctIndex: 0
+    },
+    {
+        question: "Welche Arten von Saugschläuchen gibt es?",
+        options: [
+            "Nur A- und B-Saugschlauch.",
+            "A-, B-, C- und D-Saugschlauch.",
+            "Nur C-Saugschläuche.",
+            "Es gibt keine genormten Saugschläuche."
+        ],
+        correctIndex: 1
+    },
+    {
+        question: "Wie groß sind diese Saugschläuche (Durchmesser und Länge)?",
+        options: [
+            "A-Saugschlauch (110 mm), B-Saugschlauch (75 mm), C-Saugschlauch (52 mm), D-Saugschlauch (25 mm). Die Längen variieren.",
+            "Alle Saugschläuche sind 5 Meter lang.",
+            "Alle Saugschläuche haben einen Durchmesser von 75 mm.",
+            "Die Größe hängt von der Art des Löschmittels ab."
+        ],
+        correctIndex: 0
+    },
+    {
+        question: "Welche Aufgabe hat der Druckschlauch? Welche hat der Saugschlauch?",
+        options: [
+            "Der Druckschlauch dient zur Weiterführung von Löschmitteln wie Wasser und Pulver. Der Saugschlauch dient zur Entnahme von Wasser aus offenen Gewässern.",
+            "Beide dienen zur Weiterleitung von Wasser.",
+            "Der Druckschlauch saugt Wasser an, der Saugschlauch gibt es ab.",
+            "Der Druckschlauch wird nur für Schaum verwendet, der Saugschlauch nur für Wasser."
+        ],
+        correctIndex: 0
+    },
+    {
+        question: "Was ist ein Mehrzweckstrahlrohr?",
+        options: [
+            "Ein Strahlrohr, das nur Vollstrahl abgeben kann.",
+            "Ein Strahlrohr, das nur Sprühstrahl abgeben kann.",
+            "Ein Mehrzweckstrahlrohr kann Wasser als Vollstrahl oder als Sprühstrahl abgeben. Das Kurzzeichen ist M-Strahlrohr.",
+            "Ein Strahlrohr, das für verschiedene Löschmittel geeignet ist."
+        ],
+        correctIndex: 2
+    },
+    {
+        question: "Welche Strahlrohrgrößen kennen wir?",
+        options: [
+            "A, B, C, D.",
+            "B, C, D.",
+            "Nur B.",
+            "Es gibt nur eine Standardgröße."
+        ],
+        correctIndex: 1
+    },
+    {
+        question: "Wozu wird die Fangleine verwendet?",
+        options: [
+            "Zum Hochziehen von Arbeitsgeräten, zur Menschenrettung und als Sicherungsleine für Feuerwehrleute.",
+            "Als reines Übungsgerät für die Jugendfeuerwehr.",
+            "Um Fahrzeuge abzuschleppen.",
+            "Zum Absperren von Einsatzstellen."
+        ],
+        correctIndex: 0
+    },
+    {
+        question: "Was sind Arbeitsleinen und woran erkennt man diese?",
+        options: [
+            "Sie erkennt man an der grünen Farbe.",
+            "Sie erkennt man an der roten Farbe. Sie dürfen nicht für die Aufgaben einer Fangleine verwendet werden.",
+            "Es gibt nur eine Art von Leinen.",
+            "Arbeitsleinen sind dicker als Fangleinen."
+        ],
+        correctIndex: 1
+    },
+    {
+        question: "Was versteht man unter dem Begriff 'Tragbare Leitern' und welche kennen wir?",
+        options: [
+            "Leitern, die auf Drehleitern befestigt sind.",
+            "Leitern, die von Mannschaften getragen und auf Fahrzeugen verladen werden können. Arten sind: Klappleiter, Steckleiter, Hakenleiter, Schiebeleiter.",
+            "Leitern, die nur für Einsätze im Innenbereich gedacht sind.",
+            "Alle Leitern, die nicht länger als 5 Meter sind."
+        ],
+        correctIndex: 1
+    },
+    {
+        question: "Was ist ein Sicherheitsgurt und wozu benötigt man ihn?",
+        options: [
+            "Ein Gurt zum Transport von Geräten.",
+            "Der Sicherheitsgurt gehört zur persönlichen Ausrüstung des Feuerwehrmannes. Er dient als Mittel zur Sicherung des Feuerwehrmannes.",
+            "Ein Gurt, der nur bei Höhenrettungseinsätzen verwendet wird.",
+            "Ein Gurt, um das Tragen des Atemschutzgerätes zu erleichtern."
+        ],
+        correctIndex: 1
+    },
+    {
+        question: "Nach welchem Hilfsmittel sucht man einen Hydranten?",
+        options: [
+            "Nach Hydranten-Hinweisschildern.",
+            "Nach gelb-markierten Steinen.",
+            "Nach blauen Fähnchen auf der Straße.",
+            "Nach einem Zeichen an Hauswänden."
+        ],
+        correctIndex: 0
+    },
+    {
+        question: "Wozu wird die Kübelspritze benötigt?",
+        options: [
+            "Zur Brandbekämpfung in großen Industriegebäuden.",
+            "Zur Bekämpfung von kleinen Entstehungsbränden und zum Ablöschen kleiner Brandnester.",
+            "Zur Förderung von Löschwasser über weite Strecken.",
+            "Zur Bewässerung von Gärten."
+        ],
+        correctIndex: 1
+    },
+    {
+        question: "Was sind Feuerlöscher?",
+        options: [
+            "Große, stationäre Löschsysteme in Gebäuden.",
+            "Von Hand getragene Geräte, die ihren Löschmittelinhalt bei Inbetriebnahme durch gespeicherten oder erzeugten Druck selbständig ausstoßen.",
+            "Fahrzeuge mit einer fest eingebauten Pumpe.",
+            "Automatische Sprinkleranlagen."
+        ],
+        correctIndex: 1
+    },
+    {
+        question: "Wozu dienen Feuerlöscher? Welche Arten kennen wir?",
+        options: [
+            "Feuerlöscher dienen zur Bekämpfung von Bränden größeren Umfanges. Arten sind Pulverlöscher und Wasserlöscher.",
+            "Feuerlöscher dienen zur Brandbekämpfung von Bränden kleineren Umfanges. Arten sind: Pulverlöscher, Kohlensäurelöscher, Wasserlöscher, Schaumlöscher.",
+            "Sie dienen nur zur Brandbekämpfung bei Waldbränden.",
+            "Feuerlöscher dienen nur zur Kühlung von Maschinen. Arten sind: Pulver- und Schaumlöscher."
+        ],
+        correctIndex: 1
+    },
+    {
+        question: "Welche Arten der Löschwasserversorgung kennen wir?",
+        options: [
+            "Die Sammelwasserversorgung (abhängige Löschwasserversorgung) und die unabhängige Löschwasserversorgung.",
+            "Nur offene Gewässer.",
+            "Nur Hydranten.",
+            "Nur Tanklöschfahrzeuge."
+        ],
+        correctIndex: 0
+    },
+    {
+        question: "Welche Wirkung hat das Wasser beim Löschen eines Brandes?",
+        options: [
+            "Es hat eine erstickende Wirkung.",
+            "Es hat eine explosive Wirkung.",
+            "Es hat eine kühlende Wirkung, weil es dem Brandherd die Wärme entzieht.",
+            "Es hat eine reinigende Wirkung."
+        ],
+        correctIndex: 2
+    },
+    {
+        question: "Was ist eine Verbrennung?",
+        options: [
+            "Ein physikalischer Vorgang, bei dem sich Stoffe verflüssigen.",
+            "Ein chemischer Vorgang, bei dem sich brennbarer Stoff unter Wärme-/Lichterscheinung mit Sauerstoff verbindet.",
+            "Ein Vorgang, bei dem durch Reibung Hitze entsteht.",
+            "Ein Prozess, der nur in Anwesenheit von Wasser stattfindet."
+        ],
+        correctIndex: 1
+    },
+    {
+        question: "Durch welche Maßnahmen - außer kühlende Wirkung - kann man auch ein Feuer löschen?",
+        options: [
+            "Durch Zuführung von Löschmittel.",
+            "Dadurch, dass ich den Sauerstoff entziehe oder die Sauerstoffzufuhr verhindere (ersticken).",
+            "Durch Verstärkung der Verbrennung.",
+            "Durch Verminderung der Wärme."
+        ],
+        correctIndex: 1
+    },
+    {
+        question: "Was soll an jeder Brandstelle vermieden werden?",
+        options: [
+            "Großer Schaden! Bedingt durch Ausdehnung des Brandes und Wasserschaden.",
+            "Das Löschen von Bränden.",
+            "Die Kommunikation mit anderen Feuerwehren.",
+            "Die Anwesenheit der Bevölkerung."
+        ],
+        correctIndex: 0
+    },
+    {
+        question: "Wer ist zur Feuermeldung verpflichtet?",
+        options: [
+            "Jedermann ist bei Entdeckung eines Schadensfeuers zur sofortigen Meldung an die Feuerwehr oder Polizei verpflichtet.",
+            "Nur der Hausbesitzer.",
+            "Nur der Einsatzleiter.",
+            "Nur der erste, der das Feuer bemerkt."
+        ],
+        correctIndex: 0
+    },
+    {
+        question: "Wie lauten die offiziellen Notruf-Nummern?",
+        options: [
+            "Feuerwehr: 110, Polizei: 112.",
+            "Feuerwehr: 112, Polizei: 110.",
+            "Feuerwehr: 911, Polizei: 110.",
+            "Feuerwehr: 115, Polizei: 112."
+        ],
+        correctIndex: 1
+    },
+    {
+        question: "Nach welchen Richtlinien ist der Unfallschutz im Feuerwehrdienst festgelegt? Und wo gilt diese Richtlinie?",
+        options: [
+            "Dieses ist festgelegt in der 'Unfallverhütungsvorschrift Feuerwehren' (UVV). Sie gilt bei Ausbildungen, Übungen, Einsätzen sowie für Feuerwehr-Einrichtungen und Feuerwehr-Geräte.",
+            "Sie ist nur für Einsätze festgelegt.",
+            "Sie gilt nur für Berufsfeuerwehren.",
+            "Sie ist nur für erwachsene Feuerwehrmänner festgelegt."
+        ],
+        correctIndex: 0
+    },
+    {
+        question: "Sind Angehörige der Jugendfeuerwehr gegen Unfälle im Dienst versichert?",
+        options: [
+            "Ja, sie sind voll versichert wie auch der Feuerwehrmann.",
+            "Nein, die Versicherung greift erst nach der Übernahme in die aktive Wehr.",
+            "Ja, aber nur während der eigentlichen Übungszeit.",
+            "Nein, sie sind nur haftpflichtversichert."
+        ],
+        correctIndex: 0
+    },
+    {
+        question: "Wann (Zeitraum) sind Mitglieder der JF versichert?",
+        options: [
+            "Nur während des eigentlichen Übungsbetriebs.",
+            "Während der gesamten Dienstzeit (Unterricht, Hin- und Rückweg).",
+            "Nur, wenn ein Einsatzalarm ausgelöst wird.",
+            "Nur während der Ferienzeit."
+        ],
+        correctIndex: 1
+    },
+    {
+        question: "Was hat ein verletzter Aktiver sofort zu tun?",
+        options: [
+            "Nach der ärztlichen Versorgung hat ein Verletzter jede im Dienst erlittene Verletzung sofort dem Einsatzleiter oder Wehrleiter zu melden.",
+            "Die Verletzung bei der Gemeinde melden.",
+            "Zunächst nichts tun und abwarten.",
+            "Eine E-Mail an die Unfallkasse senden."
+        ],
+        correctIndex: 0
+    },
+    {
+        question: "Dürfen Mitglieder der JF bei Übungen und Einsätzen eingesetzt werden?",
+        options: [
+            "Ja, sie dürfen eingesetzt werden, hierbei ist aber die Leistungsfähigkeit des Jfm zu berücksichtigen. Angehörige der JF dürfen nur vom Einsatzleiter für Aufgaben außerhalb des Gefahrenbereiches herangezogen werden.",
+            "Nein, sie dürfen niemals bei Einsätzen oder Übungen eingesetzt werden.",
+            "Ja, sie dürfen überall eingesetzt werden, auch im Gefahrenbereich.",
+            "Nur wenn es sich um einen Großschadensfall handelt."
+        ],
+        correctIndex: 0
+    },
+    {
+        question: "Was sagt die UVV zur persönlichen (körperlichen) Anforderung?",
+        options: [
+            "Jeder darf im Feuerwehrdienst eingesetzt werden.",
+            "Nur körperlich und fachlich geeignete Feuerwehrangehörige dürfen eingesetzt werden.",
+            "Es gibt keine Anforderungen an die körperliche Verfassung.",
+            "Das Alter ist der einzige entscheidende Faktor."
+        ],
+        correctIndex: 1
+    },
+    {
+        question: "Wird in der UVV auch die persönliche Ausrüstung für den Aktiven festgelegt?",
+        options: [
+            "Nein, die Ausrüstung kann frei gewählt werden.",
+            "Ja, in der UVV ist der Umfang der persönlichen Ausrüstung genau festgelegt.",
+            "Nur die Helmfarbe wird festgelegt.",
+            "Nein, das liegt im Ermessen der Gemeinde."
+        ],
+        correctIndex: 1
+    },
+    {
+        question: "Müssen Feuerwehrangehörige über die UVV informiert sein? Wann und wie?",
+        options: [
+            "Ja, jeder muss genau informiert sein. Mindestens jedoch ist einmal im Jahr eine UVV Belehrung durchzuführen.",
+            "Nein, nur der Wehrleiter muss informiert sein.",
+            "Nur bei einem Einsatz muss man sich über die UVV informieren.",
+            "Ja, aber nur in den ersten zwei Dienstjahren."
+        ],
+        correctIndex: 0
+    },
+    {
+        question: "Werden Verstöße gegen die UVV bestraft?",
+        options: [
+            "Nein, es handelt sich um Empfehlungen.",
+            "Ja, nach den Strafbestimmungen der Reichsversicherungsordnung!",
+            "Ja, durch den Ortsbrandmeister.",
+            "Ja, aber nur bei schweren Unfällen."
+        ],
+        correctIndex: 1
+    },
+    {
+        question: "Ist der Gemeinde- bzw. Stadtdirektor ein gewählter Kommunalvertreter oder ein auf Zeit gewählter Beamter?",
+        options: [
+            "Er ist ein gewählter Kommunalvertreter.",
+            "Er ist ein auf Zeit gewählter Beamter.",
+            "Er ist ein auf Lebenszeit ernannter Beamter.",
+            "Er ist ein politischer Berater."
+        ],
+        correctIndex: 1
+    },
+    {
+        question: "Wann wurde die Bundesrepublik Deutschland (BRD) gebildet?",
+        options: [
+            "Am 3. Oktober 1990 mit der Wiedervereinigung.",
+            "Am 23. Mai 1949 auf der Grundlage des Grundgesetzes.",
+            "Am 23. September 1949 auf der Grundlage des Grundgesetzes.",
+            "Am 8. Mai 1945 mit dem Ende des Zweiten Weltkriegs."
+        ],
+        correctIndex: 2
+    },
+    {
+        question: "Wie heißt die derzeitige Bundeshauptstadt der BRD?",
+        options: [
+            "Frankfurt am Main",
+            "Bonn",
+            "Berlin",
+            "Hamburg"
+        ],
+        correctIndex: 2
+    },
+    {
+        question: "Wer ist das Staatsoberhaupt der BRD? Der Bundespräsident oder der Bundeskanzler?",
+        options: [
+            "Der Bundeskanzler.",
+            "Der Bundespräsident.",
+            "Der Präsident des Bundestages.",
+            "Der Präsident des Bundesverfassungsgerichts."
+        ],
+        correctIndex: 1
+    },
+    {
+        question: "Was ist der Bundeskanzler?",
+        options: [
+            "Er ist das Staatsoberhaupt der BRD.",
+            "Er ist der Präsident des Bundestages.",
+            "Er ist der Chef der Bundesregierung, der die Richtlinien der jeweiligen Politik bestimmt und dafür die Verantwortung trägt.",
+            "Er ist der Leiter der Bundeswehr."
+        ],
+        correctIndex: 2
+    },
+    {
+        question: "Was ist der Bundestag?",
+        options: [
+            "Die Vertretung der Länderinteressen in der BRD.",
+            "Die Volksvertretung der BRD, bestehend aus den vom Volk gewählten Abgeordneten.",
+            "Das höchste Gericht der BRD.",
+            "Das Kabinett der BRD."
+        ],
+        correctIndex: 1
+    },
+    {
+        question: "Was ist die Bundesregierung?",
+        options: [
+            "Die Regierung der Bundesländer.",
+            "Die Bundesregierung ist das Kabinett der BRD, bestehend aus dem Bundeskanzler und den Bundesministern.",
+            "Der Bundesrat und der Bundestag.",
+            "Die Vertretung der Kommunen."
+        ],
+        correctIndex: 1
+    },
+    {
+        question: "Was ist der Bundespräsident?",
+        options: [
+            "Das Staatsoberhaupt der BRD. Wird von der Bundesversammlung auf die Dauer von fünf Jahren gewählt. Ihm obliegt u. a. die Repräsentation der BRD nach innen und außen.",
+            "Der Regierungschef der BRD.",
+            "Der Chef der Bundeswehr.",
+            "Der Vorsitzende des Bundesrates."
+        ],
+        correctIndex: 0
+    },
+    {
+        question: "Was ist die Bundesversammlung?",
+        options: [
+            "Oberstes Bundesorgan zur Wahl des Bundespräsidenten. Besteht aus den Mitgliedern des Bundestages und aus der gleichen Zahl von Mitgliedern, die von den Volksvertretern der Länder gewählt werden.",
+            "Einmal im Jahr stattfindendes Treffen aller Bundespolitiker.",
+            "Ein Parlament aller Minister der Länder.",
+            "Die jährliche Versammlung der Bundesregierung."
+        ],
+        correctIndex: 0
+    },
+    {
+        question: "Was ist das Bundesverfassungsgericht?",
+        options: [
+            "Höchstes Gericht der BRD. Entscheidet u. a. über verfassungsrechtliche Streitigkeiten.",
+            "Das oberste Gericht in Berlin.",
+            "Ein internationales Gericht.",
+            "Ein Gericht für Zivilklagen."
+        ],
+        correctIndex: 0
+    },
+    {
+        question: "Was ist der Bundesrat?",
+        options: [
+            "Die Volksvertretung der BRD.",
+            "Die Vertretung der Länderinteressen in der BRD. Maßgeblich an der Bundesgesetzgebung beteiligt.",
+            "Das Kabinett der BRD.",
+            "Das höchste Gericht der BRD."
+        ],
+        correctIndex: 1
+    },
+    {
+        question: "Mit welchem Alter wird ein Bundesbürger volljährig?",
+        options: [
+            "Mit 16 Jahren.",
+            "Mit 21 Jahren.",
+            "Mit 18 Jahren.",
+            "Mit 25 Jahren."
+        ],
+        correctIndex: 2
+    }
+];</script>
+    <script >const startScreen = document.getElementById('start-screen');
+const quizContainer = document.getElementById('quiz-container');
+const selectionScreen = document.getElementById('selection-screen');
+const questionTextEl = document.getElementById('question-text');
+const optionsContainerEl = document.getElementById('options-container');
+const submitBtn = document.getElementById('submit-answer');
+const nextBtn = document.getElementById('next-question-btn');
+const feedbackEl = document.getElementById('feedback');
+const questionListEl = document.getElementById('question-list');
+const startEndlessBtn = document.getElementById('start-endless-mode');
+const startSelectionBtn = document.getElementById('start-selection-mode');
+const backToMainQuizBtn = document.getElementById('back-to-main-menu-quiz');
+const backToMainSelectionBtn = document.getElementById('back-to-main-menu-selection');
+
+let quizData = [];
+let currentQuestion = null;
+let currentMode = '';
+
+const DEFAULT_WEIGHT = 100;
+const MAX_HISTORY = 5;
+
+// Funktion zum Laden der Fragen und initialisieren
+function loadQuestions() {
+    quizData = window.quizQuestions;
+    const storedData = JSON.parse(localStorage.getItem('quizData'));
+    if (storedData) {
+        quizData = storedData;
+    } else {
+        quizData.forEach(q => {
+            q.weight = DEFAULT_WEIGHT;
+            q.history = [];
+        });
+        saveData();
+    }
+}
+
+// Funktion zum Speichern im localStorage
+function saveData() {
+    localStorage.setItem('quizData', JSON.stringify(quizData));
+}
+
+// Funktion für den Unendlich-Modus
+function startEndlessMode() {
+    currentMode = 'endless';
+    startScreen.classList.add('hidden');
+    quizContainer.classList.remove('hidden');
+    backToMainQuizBtn.classList.remove('hidden');
+    displayNextQuestion();
+}
+
+// Funktion für den Auswahl-Modus
+function startSelectionMode() {
+    currentMode = 'selection';
+    startScreen.classList.add('hidden');
+    selectionScreen.classList.remove('hidden');
+    backToMainQuizBtn.classList.add('hidden');
+    renderQuestionList();
+}
+
+// Funktion zum Zurückkehren zum Hauptmenü
+function backToMainMenu() {
+    startScreen.classList.remove('hidden');
+    quizContainer.classList.add('hidden');
+    selectionScreen.classList.add('hidden');
+}
+
+// Funktion zur Anzeige der nächsten Frage im Unendlich-Modus
+function displayNextQuestion() {
+    // Buttons und Feedback zurücksetzen
+    submitBtn.classList.remove('hidden');
+    nextBtn.classList.add('hidden');
+    feedbackEl.classList.add('hidden');
+    
+    const totalWeight = quizData.reduce((sum, q) => sum + q.weight, 0);
+    let randomNum = Math.random() * totalWeight;
+    currentQuestion = quizData.find(q => {
+        randomNum -= q.weight;
+        return randomNum <= 0;
+    });
+
+    if (currentQuestion) {
+        renderQuestion(currentQuestion);
+    } else {
+        alert("Alle Fragen wurden abgearbeitet!");
+        backToMainMenu();
+    }
+}
+
+// Funktion zum Anzeigen einer Frage
+// Funktion zum Anzeigen einer Frage
+function renderQuestion(question) {
+    // Buttons und Feedback zurücksetzen
+    submitBtn.classList.remove('hidden');
+    nextBtn.classList.add('hidden');
+    feedbackEl.classList.add('hidden');
+    
+    questionTextEl.textContent = question.question;
+    optionsContainerEl.innerHTML = '';
+    
+    question.options.forEach((option, index) => {
+        const optionEl = document.createElement('div');
+        optionEl.classList.add('option');
+        optionEl.textContent = option;
+        optionEl.dataset.index = index;
+        optionEl.addEventListener('click', () => {
+            document.querySelectorAll('.option').forEach(el => el.classList.remove('selected'));
+            optionEl.classList.add('selected');
+        });
+        optionsContainerEl.appendChild(optionEl);
+    });
+}
+
+
+// Funktion zur Überprüfung der Antwort
+function checkAnswer() {
+    const selectedOption = document.querySelector('.option.selected');
+    if (!selectedOption) {
+        alert("Bitte wähle eine Antwort aus!");
+        return;
+    }
+
+    const selectedIndex = parseInt(selectedOption.dataset.index);
+    const isCorrect = selectedIndex === currentQuestion.correctIndex;
+    let correctOptionEl = optionsContainerEl.children[currentQuestion.correctIndex];
+
+    feedbackEl.classList.remove('hidden');
+    if (isCorrect) {
+        feedbackEl.textContent = 'Richtig! ✅';
+        selectedOption.classList.add('correct');
+        updateWeight(currentQuestion, true);
+    } else {
+        feedbackEl.textContent = `Falsch. Die richtige Antwort war: ${correctOptionEl.textContent} ❌`;
+        selectedOption.classList.add('incorrect');
+        correctOptionEl.classList.add('correct');
+        updateWeight(currentQuestion, false);
+    }
+
+    submitBtn.classList.add('hidden');
+    nextBtn.classList.remove('hidden'); // "Weiter"-Button immer anzeigen
+}
+
+// Funktion zur Aktualisierung der Gewichtung und des Verlaufs
+function updateWeight(question, isCorrect) {
+    question.history.push(isCorrect);
+    if (question.history.length > MAX_HISTORY) {
+        question.history.shift();
+    }
+
+    if (isCorrect) {
+        question.weight = Math.max(0, question.weight - 10);
+    } else {
+        question.weight = Math.min(DEFAULT_WEIGHT, question.weight + 20);
+    }
+    saveData();
+}
+
+// Funktion zum Rendern der Fragenliste im Auswahl-Modus
+function renderQuestionList() {
+    questionListEl.innerHTML = '';
+
+    const sortedQuestions = quizData.slice().sort((a, b) => {
+        const aCorrect = a.history.filter(h => h).length;
+        const bCorrect = b.history.filter(h => h).length;
+        const aTotal = a.history.length;
+        const bTotal = b.history.length;
+        const aRatio = aTotal > 0 ? aCorrect / aTotal : 0;
+        const bRatio = bTotal > 0 ? bCorrect / bTotal : 0;
+
+        if (aTotal === 0 && bTotal > 0) return -1;
+        if (aTotal > 0 && bTotal === 0) return 1;
+
+        return aRatio - bRatio;
+    });
+
+    sortedQuestions.forEach(q => {
+        const li = document.createElement('li');
+        const correctCount = q.history.filter(h => h).length;
+        const totalCount = q.history.length;
+        const percentage = totalCount > 0 ? Math.round((correctCount / totalCount) * 100) : 0;
+        
+        const historyIcons = q.history.map(h => h ? '✅' : '❌').join(' ');
+
+        li.innerHTML = `
+            ${q.question}
+            <span>(${percentage}%)</span>
+            <span>[${historyIcons}]</span>
+        `;
+        li.addEventListener('click', () => {
+            currentQuestion = q;
+            selectionScreen.classList.add('hidden');
+            quizContainer.classList.remove('hidden');
+            renderQuestion(q);
+        });
+        questionListEl.appendChild(li);
+    });
+}
+
+// Event-Listener
+startEndlessBtn.addEventListener('click', startEndlessMode);
+startSelectionBtn.addEventListener('click', startSelectionMode);
+submitBtn.addEventListener('click', checkAnswer);
+nextBtn.addEventListener('click', () => {
+    if (currentMode === 'endless') {
+        displayNextQuestion();
+    } else if (currentMode === 'selection') {
+        selectionScreen.classList.remove('hidden');
+        quizContainer.classList.add('hidden');
+        renderQuestionList();
+    }
+});
+// Bestätigung für das Hauptmenü im Unendlich-Modus
+backToMainQuizBtn.addEventListener('click', () => {
+    const isConfirmed = confirm("Bist du sicher, dass du zum Hauptmenü zurückkehren möchtest? Dein Fortschritt wird gespeichert.");
+    if (isConfirmed) {
+        backToMainMenu();
+    }
+});
+
+backToMainSelectionBtn.addEventListener('click', backToMainMenu);
+
+// Initialisierung
+loadQuestions();</script>
+</body>
+</html>
